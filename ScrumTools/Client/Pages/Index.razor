@@ -1,0 +1,33 @@
+﻿@page "/"
+@using ScrumTools.Shared;
+
+<PageTitle>Online Scrum Poker</PageTitle>
+
+<div class="row">
+    <div class="col-3">
+        <div class="card text-center">
+            <div class="card-header">
+                Active Poker Game Count
+            </div>
+            <div class="card-body">
+                <span class="oi oi-puzzle-piece h1" aria-hidden="true"></span>
+                <h1>1</h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-3">
+        <div class="card text-center">
+            <div class="card-header">
+                Active Poker Gamer Count
+            </div>
+            <div class="card-body">
+                <span class="oi oi-people h1" aria-hidden="true"></span>
+                <h1>@activeGamerCount</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    int activeGamerCount = GameStatistics.GamerList.Count;
+}

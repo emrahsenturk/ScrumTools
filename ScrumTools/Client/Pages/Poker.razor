@@ -1,0 +1,346 @@
+﻿@page "/poker"
+
+@inject NavigationManager navigationManager;
+@inject IToastService toastService
+@using Microsoft.AspNetCore.SignalR.Client;
+@using Blazored.Toast.Configuration
+
+<BlazoredToasts Position="ToastPosition.BottomRight"
+                Timeout="5" />
+
+<nav class="navbar navbar-light bg-light mb-3">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">Scrum Poker</span>
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            @if (!string.IsNullOrWhiteSpace(gamerName))
+            {
+                <li class="nav-item">
+                    <small class="navbar-text">Gamer name: @gamerName</small>
+                </li>
+            }
+            @if (!string.IsNullOrWhiteSpace(gameId))
+            {
+                <li class="nav-item">
+                    <small class="navbar-text">Game id: @gameId</small>
+                </li>
+            }
+        </ul>
+
+
+    </div>
+</nav>
+
+<div class="container-fluid bg-gray-300">
+    <div class="row @(startGame ? "d-none" : string.Empty)">
+        <div class="col-12">
+            <input type="text" id="gamerName" class="form-control" @bind="@gamerName" placeholder="Gamer name" />
+            <br />
+            <input type="text" id="gameId" class="form-control" @bind="@gameId" placeholder="Game id (You must leave this field blank when creating a new game.)" />
+            <br />
+            <input type="button" value="Connect to Game" class="btn btn-outline-primary" @onclick="@ConnectToGame" />
+        </div>
+    </div>
+    <div class="row @(!startGame ? "d-none" : string.Empty)">
+        <div class="col-6 border border-light p-3">
+            <h5>Game</h5>
+            <div class="btn-toolbar mt-4" role="toolbar" aria-label="Toolbar with button groups">
+                <div class="btn-group me-2 btn-group-lg" role="group" aria-label="First group">
+                    <input type="button" value="1" class="btn btn-primary btn-lg" @onclick="args => Vote(1)" />
+                    <input type="button" value="2" class="btn btn-primary btn-lg" @onclick="args => Vote(2)" />
+                    <input type="button" value="3" class="btn btn-primary btn-lg" @onclick="args => Vote(3)" />
+                    <input type="button" value="5" class="btn btn-primary btn-lg" @onclick="args => Vote(5)" />
+                </div>
+                <div class="btn-group me-2 btn-group-lg" role="group" aria-label="Second group">
+                    <input type="button" value="8" class="btn btn-warning btn-lg" @onclick="args => Vote(8)" />
+                    <input type="button" value="13" class="btn btn-warning btn-lg" @onclick="args => Vote(13)" />
+                    <input type="button" value="20" class="btn btn-warning btn-lg" @onclick="args => Vote(20)" />
+                </div>
+                <div class="btn-group btn-group-lg" role="group" aria-label="Third group">
+                    <input type="button" value="40" class="btn btn-danger btn-lg" @onclick="args => Vote(40)" />
+                    <input type="button" value="100" class="btn btn-danger btn-lg" @onclick="args => Vote(100)" />
+                </div>
+            </div>
+
+            <div class="row border border-light p-3 mt-5">
+                <div class="col">
+                    <h5>Messages</h5>
+                    <div class="input-group mb-3">
+                        <input type="text" id="message" class="form-control" @bind="@message" placeholder="Message" />
+                        <button class="btn btn-outline-secondary" type="button" @onclick="@SendMessage">Send</button>
+                    </div>
+
+                    <div class="mt-3" style="height:35vh; overflow-y:scroll;">
+                        <ul id="transaction" class="list-group">
+                            @foreach (var message in messages)
+                            {
+                                <li class="list-group-item">
+                                    @message
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-3 border border-light p-3">
+            <h5>Result</h5>
+
+            <div class="btn-group mt-3" role="group" aria-label="Basic outlined example">
+                <input type="button" value="Show Results" class="btn btn-outline-primary" @onclick="@ShowResultsClick" />
+                <input type="button" value="Reset" class="btn btn-outline-primary" @onclick="@ResetClick" />
+            </div>
+
+            <div>
+                <h3 class="@(!showResults ? "d-none" : string.Empty)">
+                    <span class="badge bg-success mb-3 mt-3 mr-3">
+                        Average:
+                        @if (showResults)
+                        {
+                            @voteAverage
+                        }
+                        else
+                        {
+                            @hiddenVote;
+                        }
+
+                    </span>
+                </h3>
+
+                <h3 class="text-danger mb-3 @(!showResults ? "d-none" : string.Empty)">
+                    @if (showConsensus)
+                    {
+                        <span class="oi oi-heart" aria-hidden="true"></span>
+                        <span>@consensusText</span>
+                    }
+                </h3>
+
+
+                <div class="mt-3" style="height:50vh; overflow-y:scroll;">
+                    <ul id="transaction" class="list-group">
+                        @foreach (var vote in votes)
+                        {
+                            <li class="list-group-item">
+                                @vote.Key :
+                                @if (showResults)
+                                {
+                                    @vote.Value
+                                }
+                                else if (vote.Value != 0)
+                                {
+                                    @hiddenVote;
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-3 border border-light p-3">
+            <h5>Transactions</h5>
+            <div style="height:70vh; overflow-y:scroll;">
+                <ul id="transaction" class="list-group mt-3">
+                    @foreach (var transaction in transactions)
+                    {
+                        <li class="list-group-item">@transaction</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    bool startGame = false;
+    string gamerName = string.Empty;
+    string gameId = string.Empty;
+    string hiddenVote = "*";
+    bool showConsensus = false;
+    string consensusText = "CONSENSUS";
+    HubConnection connection;
+    List<string> transactions = new();
+    int defaultVote = 0;
+    double voteAverage = 0.0;
+    bool showResults = false;
+    Dictionary<string, int> votes = new();
+    string message = string.Empty;
+    List<string> messages = new();
+
+    async Task AddNewGamerVoteToEveryone(string gameId, string gamerName, string connectionId)
+    {
+        bool isExist = votes.TryGetValue(gamerName, out int outVote);
+        if (!isExist)
+        {
+            votes.Add(gamerName, defaultVote);
+        }
+        else
+        {
+            votes[gamerName] = defaultVote;
+        }
+
+        if (!transactions.Any() || (transactions.Count > 0 && transactions[transactions.Count - 1] != $"{gamerName} joined the game."))
+        {
+            transactions.Insert(0, $"{gamerName} joined the game.");
+        }
+
+        if (connectionId != connection.ConnectionId)
+        {
+            await connection.InvokeAsync("SendCurrentVotes", this.gameId, votes);
+            await connection.InvokeAsync("SendCurrentTransactions", this.gameId, transactions);
+        }
+    }
+
+    Task UpdateVotesForNewGamer(string gameId, Dictionary<string, int> updatedVotes)
+    {
+        this.votes = updatedVotes;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    Task UpdateTransactionsForNewGamer(string gameId, List<string> updatedTransactions)
+    {
+        this.transactions = updatedTransactions;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    async Task ConnectToGame()
+    {
+        if (string.IsNullOrWhiteSpace(this.gamerName))
+        {
+            toastService.ShowWarning("Player name cannot be empty!");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(this.gameId))
+        {
+            this.gameId = Guid.NewGuid().ToString();
+        }
+
+        await Connect();
+
+        await connection.InvokeAsync("NewGamerJoined", this.gameId, gamerName, connection.ConnectionId);
+        startGame = true;
+    }
+
+    private async Task Connect()
+    {
+        string baseUrl = navigationManager.BaseUri;
+
+        string _hubUrl = baseUrl.TrimEnd('/') + "/scrumPokerHub";
+
+        connection = new HubConnectionBuilder().WithUrl(_hubUrl).Build();
+        connection.On<string, string, string>("AddNewGamerVoteToEveryone", this.AddNewGamerVoteToEveryone);
+        connection.On<string, Dictionary<string, int>>("UpdateVotesForNewGamer", this.UpdateVotesForNewGamer);
+        connection.On<string, List<string>>("UpdateTransactionsForNewGamer", this.UpdateTransactionsForNewGamer);
+        connection.On<string, string>("InformTransactions", this.InformTransactions);
+        connection.On<string, string>("InformMessages", this.InformMessages);
+        connection.On<string>("Reset", this.Reset);
+        connection.On<string>("ShowResults", this.ShowResults);
+        connection.On<string, Dictionary<string, int>>("UpdateVotes", this.UpdateVotes);
+
+        await connection.StartAsync();
+    }
+
+    async Task Vote(int vote)
+    {
+        bool isExist = votes.TryGetValue(gamerName, out int outVote);
+        if (!isExist)
+        {
+            votes.Add(gamerName, vote);
+        }
+        else
+        {
+            votes[gamerName] = vote;
+        }
+
+        await connection.InvokeAsync("Vote", this.gameId, gamerName, vote, votes);
+    }
+
+    async Task ResetClick()
+    {
+        await connection.InvokeAsync("Reset", this.gameId, gamerName);
+    }
+
+    async Task ShowResultsClick()
+    {
+        await connection.InvokeAsync("ShowResults", this.gameId, gamerName);
+    }
+
+    Task UpdateVotes(string gameId, Dictionary<string, int> updatedVotes)
+    {
+        bool isExist = updatedVotes.TryGetValue(gamerName, out int outVote);
+        if (!isExist)
+        {
+            updatedVotes.Add(gamerName, defaultVote);
+        }
+
+        this.votes = updatedVotes;
+
+        if (showResults)
+        {
+            CalculateVoteAverage(votes);
+        }
+
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    Task Reset(string gameId)
+    {
+        foreach (var vote in votes)
+        {
+            votes[vote.Key] = defaultVote;
+        }
+        showResults = false;
+        voteAverage = 0.0;
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    Task ShowResults(string gameId)
+    {
+        CalculateVoteAverage(votes);
+        showResults = true;
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    Task InformTransactions(string gameId, string transaction)
+    {
+        transactions.Insert(0, transaction);
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+    void CalculateVoteAverage(Dictionary<string, int> votes)
+    {
+        var willCalculateVotes = votes.Where(q => q.Value != 0).Select(s => s.Value).ToList();
+        voteAverage = (double)willCalculateVotes.Sum(s => s) / willCalculateVotes.Count;
+
+        showConsensus = false;
+        if (willCalculateVotes.DistinctBy(d => d).Count() == 1)
+        {
+            showConsensus = true;
+        }
+    }
+
+    async Task SendMessage()
+    {
+        await connection.InvokeAsync("SendMessage", this.gameId, gamerName, this.message);
+    }
+
+    Task InformMessages(string gamerName, string message)
+    {
+        messages.Insert(0, $"{gamerName}: {message}");
+        this.message = string.Empty;
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+}
+
