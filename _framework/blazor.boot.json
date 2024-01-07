@@ -1,7 +1,7 @@
 {
   "entryAssembly": "ScrumTools.Client",
   "resources": {
-    "hash": "sha256-1CJkj/aAC35FG+O2GVSEvx0Ad28DJRXs+Ic3wM30rr4=",
+    "hash": "sha256-6AJdNnQ8OsR8jl2HLjIRceA6tl3P/Y/HlsCduEXU7KU=",
     "runtime": {
       "dotnet.6.0.25.0ibdzzkyii.js": "sha256-1jUGCCSGH9JWhkqbHdQk8JBjBI8K/VC63En5zlypVps=",
       "dotnet.timezones.blat": "sha256-KsGUR9nqtXb3Hy6IrNlnc1HoSS+AFlsXTX9rq4oChtA=",
@@ -35,8 +35,8 @@
       "Microsoft.JSInterop.dll": "sha256-9gL9GtfZlVnL8pVVaGQenFLV+KFQD6bfa91z2BABJmo=",
       "Microsoft.JSInterop.WebAssembly.dll": "sha256-z/EJitGsU283cKcDZVgUKgJLukHuEFeA0hb6lK7IxeA=",
       "Microsoft.Win32.Primitives.dll": "sha256-vku1dJQkOHuX8R0wnj9T6XAR3c0TVYMfLXdJlGYa1vQ=",
-      "ScrumTools.Client.dll": "sha256-IHjiPtShLefTuF8LIogVA5Q1DIuTCyOqO2Lt6yTcWiM=",
-      "ScrumTools.Shared.dll": "sha256-DATnCUGXxpt+/D39Qbre0KVVdpMh+2DkKLEW9tek9r8=",
+      "ScrumTools.Client.dll": "sha256-myZukzodKUB3VlIyoCPkVgYclePEe/MiGDb3d+Vp3f8=",
+      "ScrumTools.Shared.dll": "sha256-PIdRxElF2sU/aQHBOxhItLce14v4A2gKX2ITXa4nBHE=",
       "System.Collections.Concurrent.dll": "sha256-ui9cXqxU3qWqR6z2MfYLMKhj6EZvcDmE3MRiMj/gCtA=",
       "System.Collections.dll": "sha256-Xfc4Ail7b+XC+Ws3lnU+pWltrtuX3xLg0h5ay6k01pc=",
       "System.Collections.NonGeneric.dll": "sha256-wjHjOjcuM8OGz86Dw7lMyWIE8AYpUd4fEC7OQ7xjALA=",
