@@ -227,7 +227,7 @@
     {
         string baseUrl = navigationManager.BaseUri;
 
-        string _hubUrl = baseUrl.TrimEnd('/') + "/scrumPokerHub";
+        string _hubUrl = baseUrl.TrimEnd('/') + "/ScrumTools/scrumPokerHub";
 
         connection = new HubConnectionBuilder().WithUrl(_hubUrl).Build();
         connection.On<string, string, string>("AddNewGamerVoteToEveryone", this.AddNewGamerVoteToEveryone);
