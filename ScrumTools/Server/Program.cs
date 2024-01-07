@@ -36,12 +36,12 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.MapBlazorHub();
-app.MapHub<ScrumPokerHub>("/scrumPokerHub");
-
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
+
+app.MapBlazorHub();
+app.MapHub<ScrumPokerHub>("/scrumPokerHub");
 
 app.Run();
 
